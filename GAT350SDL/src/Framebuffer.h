@@ -1,6 +1,7 @@
 #pragma once
 #include "Renderer.h"
 #include <vector>
+#include <glm\glm.hpp>
 
 class Framebuffer
 {
@@ -11,10 +12,15 @@ public:
 	void Update();
 
 	void Clear(const color_t& color);
-	void DrawPoint(int x, int y, const color_t& color);
-	void DrawRect(int x, int y, int width, int height, const color_t& color);
-	void DrawLine(int x1, int y1, int x2, int y2, const color_t& color);
-	void DrawCircle(int x, int y, int radius, const color_t& color);
+	void DrawPoint(glm::vec2 p, const color_t& color);
+	void DrawRect(glm::vec2 p, glm::vec2 size, const color_t& color);
+	void DrawLine(glm::vec2 p1, glm::vec2 p2, const color_t& color);
+	void DrawCircle(glm::vec2 p, int radius, const color_t& color);
+	void DrawTriangle(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3, const color_t& color);
+
+private:
+	void DrawFlatTop(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3, const color_t& color);
+	void DrawFlatBottom(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3, const color_t& color);
 
 public:
 	SDL_Texture* texture{ nullptr };
