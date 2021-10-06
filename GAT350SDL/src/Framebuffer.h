@@ -16,7 +16,7 @@ public:
 	void DrawRect(glm::vec2 p, glm::vec2 size, const color_t& color);
 	void DrawLine(glm::vec2 p1, glm::vec2 p2, const color_t& color);
 	void DrawCircle(glm::vec2 p, int radius, const color_t& color);
-	void DrawTriangle(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3, const color_t& color);
+	void DrawTriangle(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3, const color_t& color, bool ndc = false);
 
 private:
 	void DrawFlatTop(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3, const color_t& color);

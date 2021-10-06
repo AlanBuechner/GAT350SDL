@@ -105,8 +105,19 @@ void Framebuffer::DrawCircle(glm::vec2 p, int radius, const color_t& color)
 
 }
 
-void Framebuffer::DrawTriangle(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3, const color_t& color)
+void Framebuffer::DrawTriangle(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3, const color_t& color, bool ndc)
 {
+	if (ndc)
+	{
+		// convert from ndc space to screen space
+		p1.x = (p1.x + 1) * width / 2;
+		p1.y = (p1.y + 1) * height / 2;
+		p2.x = (p2.x + 1) * width / 2;
+		p2.y = (p2.y + 1) * height / 2;
+		p3.x = (p3.x + 1) * width / 2;
+		p3.y = (p3.y + 1) * height / 2;
+	}
+
 	glm::vec2* v1 = &p1;
 	glm::vec2* v2 = &p2;
 	glm::vec2* v3 = &p3;
