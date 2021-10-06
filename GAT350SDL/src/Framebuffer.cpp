@@ -1,5 +1,6 @@
 #include "Framebuffer.h"
-#include "glm\glm.hpp"
+#include "Mesh.h"
+#include <glm\glm.hpp>
 
 Framebuffer::Framebuffer(Renderer* renderer, int width, int height)
 {
@@ -30,7 +31,7 @@ void Framebuffer::Clear(const color_t& color)
 		((color_t*)buffer)[i] = color;
 }
 
-void Framebuffer::DrawPoint(glm::vec2 p, const color_t& color)
+void Framebuffer::DrawPoint(const glm::vec2& p, const color_t& color)
 {
 	if (p.x < 0 || p.x > width || p.y < 0 || p.y > height)
 		return;
@@ -38,7 +39,7 @@ void Framebuffer::DrawPoint(glm::vec2 p, const color_t& color)
 	((color_t*)buffer)[(int)p.y * width + (int)p.x] = color;
 }
 
-void Framebuffer::DrawRect(glm::vec2 p, glm::vec2 size, const color_t& color)
+void Framebuffer::DrawRect(const glm::vec2& p, const glm::vec2& size, const color_t& color)
 {
 	for (float sx = p.x; sx < size.x + p.x; sx++)
 		for (float sy = p.y; sy < size.y + p.y; sy++)
@@ -55,10 +56,8 @@ void Framebuffer::DrawLine(glm::vec2 p1, glm::vec2 p2, const color_t& color)
 	if (p1.x != p2.x && std::abs(m) <= 1.0f)
 	{
 		if (p1.x > p2.x)
-		{
-			glm::vec2 temp = p1;
-			p1 = p2; p2 = temp;
-		}
+			std::swap(p1, p2);
+		
 
 		const float b = p1.y - m * p1.x;
 
@@ -71,10 +70,7 @@ void Framebuffer::DrawLine(glm::vec2 p1, glm::vec2 p2, const color_t& color)
 	else
 	{
 		if (p1.y > p2.y)
-		{
-			glm::vec2 temp = p1;
-			p1 = p2; p2 = temp;
-		}
+			std::swap(p1, p2);
 
 		const float w = (p2.x - p1.x) / (p2.y - p1.y);
 		const float b = p1.x - w * p1.y;
@@ -87,7 +83,7 @@ void Framebuffer::DrawLine(glm::vec2 p1, glm::vec2 p2, const color_t& color)
 	}
 }
 
-void Framebuffer::DrawCircle(glm::vec2 p, int radius, const color_t& color)
+void Framebuffer::DrawCircle(const glm::vec2& p, int radius, const color_t& color)
 {
 
 	float x1 = p.x - radius, x2 = p.x + radius;
@@ -155,7 +151,25 @@ void Framebuffer::DrawTriangle(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3, const c
 
 }
 
-void Framebuffer::DrawFlatTop(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3, const color_t& color)
+void Framebuffer::DrawMesh(const Mesh& mesh, const color_t& color)
+{
+	for (uint32_t i = 0; i < mesh.indices.size()/3; i++)
+	{
+		const Vertex& p1 = mesh.vertices[mesh.indices[i * 3 + 0]];
+		const Vertex& p2 = mesh.vertices[mesh.indices[i * 3 + 1]];
+		const Vertex& p3 = mesh.vertices[mesh.indices[i * 3 + 2]];
+
+		glm::vec3 c1 = p2.Position - p1.Position;
+		glm::vec3 c3 = p3.Position - p1.Position;
+
+		glm::vec3 normal = glm::cross(c1, c3);
+
+		if (glm::dot(normal, {0,0,1}) > 0.0f)
+			DrawTriangle(p1.Position, p2.Position, p3.Position, color, true);
+	}
+}
+
+void Framebuffer::DrawFlatTop(const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3, const color_t& color)
 {
 	float m1 = (p3.x - p1.x) / (p3.y - p1.y);
 	float m2 = (p3.x - p2.x) / (p3.y - p2.y);
@@ -177,7 +191,7 @@ void Framebuffer::DrawFlatTop(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3, const co
 
 }
 
-void Framebuffer::DrawFlatBottom(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3, const color_t& color)
+void Framebuffer::DrawFlatBottom(const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3, const color_t& color)
 {
 	float m1 = (p2.x - p1.x) / (p2.y - p1.y);
 	float m2 = (p3.x - p1.x) / (p3.y - p1.y);

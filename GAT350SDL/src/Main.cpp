@@ -1,5 +1,6 @@
 #include "Renderer.h"
 #include "Framebuffer.h"
+#include "Mesh.h"
 
 #include <iostream>
 #include <SDL.h>
@@ -13,6 +14,9 @@ int main(int, char**)
 	renderer->Initialize(WIDTH, HEIGHT);
 
 	std::unique_ptr<Framebuffer> frameBuffer = std::make_unique<Framebuffer>(renderer.get(), WIDTH, HEIGHT);
+	Mesh mesh;
+	mesh.vertices = std::vector<Vertex>{ { {0.0f, 0.5f, 0.0f} }, { {-0.5f, -0.5f, 0.0f} }, { {0.5f, -0.5f, 0.0f} } };
+	mesh.indices = {0,1,2};
 	
 	bool quit = false;
 	SDL_Event event;
@@ -30,7 +34,8 @@ int main(int, char**)
 		//frameBuffer->DrawRect({ 10, 10 }, { 100, 100 }, { 255,0,0,255 });
 		//frameBuffer->DrawLine({ 200, 200 }, { 300, 400 }, { 0,255,0,255 });
 		//frameBuffer->DrawCircle({ 600, 200 }, 100, { 0,0,255,255 });
-		frameBuffer->DrawTriangle({ 0, 0.5 }, { 0.5, -0.5 }, { -0.5, -0.5 }, { 0,255,0,255 }, true);
+		//frameBuffer->DrawTriangle({ 0, 0.5 }, { 0.5, -0.5 }, { -0.5, -0.5 }, { 0,255,0,255 }, true);
+		frameBuffer->DrawMesh(mesh, { 0,255,0,255 });
 		frameBuffer->Update();
 
 		renderer->CopyBuffer(frameBuffer.get());

@@ -3,6 +3,8 @@
 #include <vector>
 #include <glm\glm.hpp>
 
+class Mesh;
+
 class Framebuffer
 {
 public:
@@ -12,15 +14,17 @@ public:
 	void Update();
 
 	void Clear(const color_t& color);
-	void DrawPoint(glm::vec2 p, const color_t& color);
-	void DrawRect(glm::vec2 p, glm::vec2 size, const color_t& color);
+	void DrawPoint(const glm::vec2& p, const color_t& color);
+	void DrawRect(const glm::vec2& p, const glm::vec2& size, const color_t& color);
 	void DrawLine(glm::vec2 p1, glm::vec2 p2, const color_t& color);
-	void DrawCircle(glm::vec2 p, int radius, const color_t& color);
+	void DrawCircle(const glm::vec2& p, int radius, const color_t& color);
 	void DrawTriangle(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3, const color_t& color, bool ndc = false);
 
+	void DrawMesh(const Mesh& mesh, const color_t& color);
+
 private:
-	void DrawFlatTop(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3, const color_t& color);
-	void DrawFlatBottom(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3, const color_t& color);
+	void DrawFlatTop(const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3, const color_t& color);
+	void DrawFlatBottom(const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3, const color_t& color);
 
 public:
 	SDL_Texture* texture{ nullptr };
