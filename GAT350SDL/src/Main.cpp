@@ -27,8 +27,9 @@ int main(int, char**)
 		}
 
 		frameBuffer->Clear({ 0,0,0,0 });
-		frameBuffer->DrawRect(10, 10, 100, 100, {255,255,255,255});
+		frameBuffer->DrawRect(10, 10, 100, 100, {255,0,0,255});
 		frameBuffer->DrawLine(200, 200, 300, 400, { 0,255,0,255 });
+		frameBuffer->DrawCircle(600, 200, 100, { 0,0,255,255 });
 		frameBuffer->Update();
 
 		renderer->CopyBuffer(frameBuffer.get());
