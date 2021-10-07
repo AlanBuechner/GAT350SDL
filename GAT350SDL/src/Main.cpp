@@ -16,10 +16,12 @@ int main(int, char**)
 
 	std::unique_ptr<Framebuffer> frameBuffer = std::make_unique<Framebuffer>(renderer.get(), WIDTH, HEIGHT);
 	Mesh mesh;
-	mesh.vertices = std::vector<Vertex>{	{ { 0.0f,  0.5f, 0.0f}, {0.0f, 1.0f, 1.0f, 0.0f} }, 
-											{ {-0.5f, -0.5f, 0.0f}, {1.0f, 1.0f, 0.0f, 0.0f} },
-											{ { 0.5f, -0.0f, 0.0f}, {1.0f, 0.0f, 1.0f, 0.0f} } };
-	mesh.indices = {0,1,2};
+	mesh.vertices = std::vector<Vertex>{	{ { 0.5f,  0.5f, 0.0f}, {1.0f, 0.0f, 0.0f, 1.0f} }, 
+											{ {-0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f, 1.0f} },
+											{ { 0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f} },
+											{ {-0.5f,  0.5f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f} },
+	};
+	mesh.indices = {0,1,2, 1,0,3};
 
 	DefaultShader shader;
 	
