@@ -178,11 +178,13 @@
     <ClCompile Include="src\Framebuffer.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Renderer.cpp" />
+    <ClCompile Include="src\Shader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Framebuffer.h" />
     <ClInclude Include="src\Mesh.h" />
     <ClInclude Include="src\Renderer.h" />
+    <ClInclude Include="src\Shader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

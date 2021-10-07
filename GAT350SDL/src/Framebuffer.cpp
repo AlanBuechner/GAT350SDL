@@ -1,6 +1,8 @@
 #include "Framebuffer.h"
 #include "Mesh.h"
+#include "Shader.h"
 #include <glm\glm.hpp>
+#include <iostream>
 
 Framebuffer::Framebuffer(Renderer* renderer, int width, int height)
 {
@@ -57,7 +59,6 @@ void Framebuffer::DrawLine(glm::vec2 p1, glm::vec2 p2, const color_t& color)
 	{
 		if (p1.x > p2.x)
 			std::swap(p1, p2);
-		
 
 		const float b = p1.y - m * p1.x;
 
@@ -101,10 +102,15 @@ void Framebuffer::DrawCircle(const glm::vec2& p, int radius, const color_t& colo
 
 }
 
-void Framebuffer::DrawTriangle(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3, const color_t& color, bool ndc)
+void Framebuffer::DrawTriangle(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3, const glm::vec4& color, Shader& shader, bool ndc)
 {
 	if (ndc)
 	{
+		// flip y
+		p1.y = -p1.y;
+		p2.y = -p2.y;
+		p3.y = -p3.y;
+
 		// convert from ndc space to screen space
 		p1.x = (p1.x + 1) * width / 2;
 		p1.y = (p1.y + 1) * height / 2;
@@ -112,6 +118,7 @@ void Framebuffer::DrawTriangle(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3, const c
 		p2.y = (p2.y + 1) * height / 2;
 		p3.x = (p3.x + 1) * width / 2;
 		p3.y = (p3.y + 1) * height / 2;
+
 	}
 
 	glm::vec2* v1 = &p1;
@@ -122,42 +129,52 @@ void Framebuffer::DrawTriangle(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3, const c
 	if (v3->y < v2->y) std::swap(v2,v3);
 	if (v2->y < v1->y) std::swap(v1,v2);
 
+	glm::vec3 val1 = { 1.0f, 0.0f, 0.0f };
+	glm::vec3 val2 = { 0.0f, 1.0f, 0.0f };
+	glm::vec3 val3 = { 0.0f, 0.0f, 1.0f };
+
+	shader.SetStage(Shader::Stage::Pixel);
+
 	if (v1->y == v2->y) // flat top
 	{
 		if (v2->x < v1->x) std::swap(v1, v2);
-		DrawFlatTop(*v1, *v2, *v3, color);
+		DrawFlatTop(*v1, *v2, *v3, val1, val2, val3, color, shader);
 	}
 	else if (v2->y == v3->y) // flat bottom
 	{
 		if (v3->x < v2->x) std::swap(v2, v3);
-		DrawFlatBottom(*v1, *v2, *v3, color);
+		DrawFlatBottom(*v1, *v2, *v3, val1, val2, val3, color, shader);
 	}
 	else
 	{
 		const float alphaSplit = (v2->y - v1->y) / (v3->y - v1->y);
-		const glm::vec2 vi = *v1 + (*v3-*v1) * alphaSplit;
+		const glm::vec2 vi = *v1 + (*v3 - *v1) * alphaSplit;
+		const glm::vec3 vali = val1 + (val3 - val1) * alphaSplit;
 
 		if (v2->x < vi.x)
 		{
-			DrawFlatBottom(*v1, *v2, vi, color);
-			DrawFlatTop(*v2, vi, *v3, color);
+			DrawFlatBottom(*v1, *v2, vi, val1, val2, vali, color, shader);
+			DrawFlatTop(*v2, vi, *v3, val1, vali, val3, color, shader);
 		}
 		else
 		{
-			DrawFlatBottom(*v1, vi, *v2, color);
-			DrawFlatTop(vi, *v2, *v3, color);
+			DrawFlatBottom(*v1, vi, *v2, val1, vali, val2, color, shader);
+			DrawFlatTop(vi, *v2, *v3, vali, val2, val3, color, shader);
 		}
 	}
 
 }
 
-void Framebuffer::DrawMesh(const Mesh& mesh, const color_t& color)
+void Framebuffer::DrawMesh(const Mesh& mesh, const glm::vec4& color, Shader& shader)
 {
 	for (uint32_t i = 0; i < mesh.indices.size()/3; i++)
 	{
-		const Vertex& p1 = mesh.vertices[mesh.indices[i * 3 + 0]];
-		const Vertex& p2 = mesh.vertices[mesh.indices[i * 3 + 1]];
-		const Vertex& p3 = mesh.vertices[mesh.indices[i * 3 + 2]];
+		shader.SetStage(Shader::Stage::Vert1);
+		const Vertex& p1 = shader.VertexShader(mesh.vertices[mesh.indices[(uint64_t)i * 3 + 0]]);
+		shader.SetStage(Shader::Stage::Vert2);
+		const Vertex& p2 = shader.VertexShader(mesh.vertices[mesh.indices[(uint64_t)i * 3 + 1]]);
+		shader.SetStage(Shader::Stage::Vert3);
+		const Vertex& p3 = shader.VertexShader(mesh.vertices[mesh.indices[(uint64_t)i * 3 + 2]]);
 
 		glm::vec3 c1 = p2.Position - p1.Position;
 		glm::vec3 c3 = p3.Position - p1.Position;
@@ -165,11 +182,13 @@ void Framebuffer::DrawMesh(const Mesh& mesh, const color_t& color)
 		glm::vec3 normal = glm::cross(c1, c3);
 
 		if (glm::dot(normal, {0,0,1}) > 0.0f)
-			DrawTriangle(p1.Position, p2.Position, p3.Position, color, true);
+			DrawTriangle(p1.Position, p2.Position, p3.Position, color, shader, true);
 	}
 }
 
-void Framebuffer::DrawFlatTop(const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3, const color_t& color)
+void Framebuffer::DrawFlatTop(	const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3,
+								const glm::vec3 val1, const glm::vec3 val2, const glm::vec3 val3, 
+								const glm::vec4& color, Shader& shader)
 {
 	float m1 = (p3.x - p1.x) / (p3.y - p1.y);
 	float m2 = (p3.x - p2.x) / (p3.y - p2.y);
@@ -185,13 +204,27 @@ void Framebuffer::DrawFlatTop(const glm::vec2& p1, const glm::vec2& p2, const gl
 		const int xStart = (int)ceil(px1 - 0.5f);
 		const int xEnd = (int)ceil(px2 - 0.5f);
 
+		float alphaSplit = (float)(y - yStart) / (float)(yEnd - yStart);
+		const glm::vec3 valstart = val1 + (val3 - val1) * alphaSplit;
+		const glm::vec3 valend = val2 + (val3 - val2) * alphaSplit;
+
 		for (int x = xStart; x < xEnd; x++)
-			DrawPoint({ x,y }, color);
+		{
+			alphaSplit = (float)(x - xStart) / (float)(xEnd - xStart);
+			const glm::vec3 val = valstart + (valend - valstart) * alphaSplit;
+
+			shader.SetInPSBuffer(val);
+
+			glm::vec4 c = shader.PixelShader() * color;
+			DrawPoint({ x,y }, { (uint8_t)(c.r * 255), (uint8_t)(c.g * 255), (uint8_t)(c.b * 255), (uint8_t)(c.a * 255) });
+		}
 	}
 
 }
 
-void Framebuffer::DrawFlatBottom(const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3, const color_t& color)
+void Framebuffer::DrawFlatBottom(	const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3,
+									const glm::vec3 val1, const glm::vec3 val2, const glm::vec3 val3, 
+									const glm::vec4& color, Shader& shader)
 {
 	float m1 = (p2.x - p1.x) / (p2.y - p1.y);
 	float m2 = (p3.x - p1.x) / (p3.y - p1.y);
@@ -207,7 +240,19 @@ void Framebuffer::DrawFlatBottom(const glm::vec2& p1, const glm::vec2& p2, const
 		const int xStart = (int)ceil(px1 - 0.5f);
 		const int xEnd = (int)ceil(px2 - 0.5f);
 
+		float alphaSplit = (float)(y - yStart) / (float)(yEnd - yStart);
+		const glm::vec3 valstart = val1 + (val3 - val1) * alphaSplit;
+		const glm::vec3 valend = val2 + (val3 - val2) * alphaSplit;
+
 		for (int x = xStart; x < xEnd; x++)
-			DrawPoint({ x,y }, color);
+		{
+			alphaSplit = (float)(x - xStart) / (float)(xEnd - xStart);
+			const glm::vec3 val = valstart + (valend - valstart) * alphaSplit;
+
+			shader.SetInPSBuffer(val);
+
+			glm::vec4 c = shader.PixelShader() * color;
+			DrawPoint({ x,y }, {(uint8_t)(c.r*255), (uint8_t)(c.g * 255), (uint8_t)(c.b * 255), (uint8_t)(c.a * 255) });
+		}
 	}
 }
