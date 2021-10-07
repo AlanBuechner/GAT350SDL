@@ -86,12 +86,12 @@ DefaultShader::DefaultShader()
 
 Vertex DefaultShader::VertexShader(const Vertex& vert)
 {
-	glm::vec4& color = GetVar<glm::vec4>("Color");
+	glm::vec4& color = *GetVar<glm::vec4>("Color");
 	color = vert.Color;
 	return vert;
 }
 
 glm::vec4 DefaultShader::PixelShader()
 {
-	return GetVar<glm::vec4>("Color");
+	return *GetVar<glm::vec4>("Color");
 }

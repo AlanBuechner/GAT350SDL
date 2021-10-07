@@ -28,7 +28,7 @@ protected:
 	};
 
 	template<typename T>
-	T& GetVar(const std::string& name)
+	T* GetVar(const std::string& name)
 	{
 		for (auto& e : vsOutLayout)
 		{
@@ -36,12 +36,13 @@ protected:
 			{
 				if (stage != Stage::Pixel) {
 					size_t offset = ((int)stage * outSize) + e.offset;
-					return *(T*)(outBuffer + offset);
+					return (T*)(outBuffer + offset);
 				}
 				else
-					return *(T*)(inBuffer+e.offset);
+					return (T*)(inBuffer+e.offset);
 			}
 		}
+		return nullptr;
 	}
 
 	void SetLayout(const std::vector<LayoutElement>& layout);
@@ -50,8 +51,8 @@ private:
 	std::vector<LayoutElement> vsOutLayout;
 	Stage stage;
 	size_t outSize;
-	unsigned char* outBuffer;
-	unsigned char* inBuffer;
+	unsigned char* outBuffer = nullptr;
+	unsigned char* inBuffer = nullptr;
 
 };
 
