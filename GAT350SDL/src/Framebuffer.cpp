@@ -125,13 +125,13 @@ void Framebuffer::DrawTriangle(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3, const g
 	glm::vec2* v2 = &p2;
 	glm::vec2* v3 = &p3;
 
-	if (v2->y < v1->y) std::swap(v1,v2);
-	if (v3->y < v2->y) std::swap(v2,v3);
-	if (v2->y < v1->y) std::swap(v1,v2);
-
 	glm::vec3 val1 = { 1.0f, 0.0f, 0.0f };
 	glm::vec3 val2 = { 0.0f, 1.0f, 0.0f };
 	glm::vec3 val3 = { 0.0f, 0.0f, 1.0f };
+
+	if (v2->y < v1->y) { std::swap(v1, v2); std::swap(val1, val2); }
+	if (v3->y < v2->y) { std::swap(v2, v3); std::swap(val2, val3); }
+	if (v2->y < v1->y) { std::swap(v1, v2); std::swap(val1, val2); }
 
 	shader.SetStage(Shader::Stage::Pixel);
 
@@ -204,9 +204,9 @@ void Framebuffer::DrawFlatTop(	const glm::vec2& p1, const glm::vec2& p2, const g
 		const int xStart = (int)ceil(px1 - 0.5f);
 		const int xEnd = (int)ceil(px2 - 0.5f);
 
-		float alphaSplit = (float)(y - yStart) / (float)(yEnd - yStart);
-		const glm::vec3 valstart = val1 + (val3 - val1) * alphaSplit;
-		const glm::vec3 valend = val2 + (val3 - val2) * alphaSplit;
+		float alphaSplit = 1-((float)(y - yStart) / (float)(yEnd - yStart));
+		const glm::vec3 valstart = val3 + (val1 - val3) * alphaSplit;
+		const glm::vec3 valend = val3 + (val2 - val3) * alphaSplit;
 
 		for (int x = xStart; x < xEnd; x++)
 		{
@@ -241,8 +241,8 @@ void Framebuffer::DrawFlatBottom(	const glm::vec2& p1, const glm::vec2& p2, cons
 		const int xEnd = (int)ceil(px2 - 0.5f);
 
 		float alphaSplit = (float)(y - yStart) / (float)(yEnd - yStart);
-		const glm::vec3 valstart = val1 + (val3 - val1) * alphaSplit;
-		const glm::vec3 valend = val2 + (val3 - val2) * alphaSplit;
+		const glm::vec3 valstart = val1 + (val2 - val1) * alphaSplit;
+		const glm::vec3 valend = val1 + (val3 - val1) * alphaSplit;
 
 		for (int x = xStart; x < xEnd; x++)
 		{
@@ -255,4 +255,5 @@ void Framebuffer::DrawFlatBottom(	const glm::vec2& p1, const glm::vec2& p2, cons
 			DrawPoint({ x,y }, {(uint8_t)(c.r*255), (uint8_t)(c.g * 255), (uint8_t)(c.b * 255), (uint8_t)(c.a * 255) });
 		}
 	}
+
 }
