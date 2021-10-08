@@ -25,10 +25,10 @@ public:
 
 private:
 	void DrawFlatTop(	const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3,
-						const glm::vec3 val1, const glm::vec3 val2, const glm::vec3 val3, 
+						const glm::vec3 val1, const glm::vec3 val2, const glm::vec3 val3,
 						const glm::vec4& color, Shader& shader);
 	void DrawFlatBottom(const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3,
-						const glm::vec3 val1, const glm::vec3 val2, const glm::vec3 val3, 
+						const glm::vec3 val1, const glm::vec3 val2, const glm::vec3 val3,
 						const glm::vec4& color, Shader& shader);
 
 public:

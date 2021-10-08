@@ -19,6 +19,7 @@ void Shader::SetInPSBuffer(const glm::vec3& val)
 			float& v3 = *(float*)(outBuffer + e.offset + (2*outSize));
 			float& ov = *(float*)(inBuffer + e.offset);
 			ov = v1 * val.x + v2 * val.y + v3 * val.z;
+			break;
 		}
 		case LayoutElement::Type::Vec2:
 		{
@@ -35,6 +36,7 @@ void Shader::SetInPSBuffer(const glm::vec3& val)
 			glm::vec3& v3 = *(glm::vec3*)(outBuffer + e.offset + (2 * outSize));
 			glm::vec3& ov = *(glm::vec3*)(inBuffer + e.offset);
 			ov = v1 * val.x + v2 * val.y + v3 * val.z;
+			break;
 		}
 		case LayoutElement::Type::Vec4:
 		{
@@ -43,6 +45,7 @@ void Shader::SetInPSBuffer(const glm::vec3& val)
 			glm::vec4& v3 = *(glm::vec4*)(outBuffer + e.offset + (2 * outSize));
 			glm::vec4& ov = *(glm::vec4*)(inBuffer + e.offset);
 			ov = v1 * val.x + v2 * val.y + v3 * val.z;
+			break;
 		}
 		default:
 			break;

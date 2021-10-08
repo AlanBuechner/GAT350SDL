@@ -137,12 +137,12 @@ void Framebuffer::DrawTriangle(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3, const g
 
 	if (v1->y == v2->y) // flat top
 	{
-		if (v2->x < v1->x) std::swap(v1, v2);
+		if (v2->x < v1->x) { std::swap(v1, v2); std::swap(val1, val2); }
 		DrawFlatTop(*v1, *v2, *v3, val1, val2, val3, color, shader);
 	}
 	else if (v2->y == v3->y) // flat bottom
 	{
-		if (v3->x < v2->x) std::swap(v2, v3);
+		if (v3->x < v2->x) { std::swap(v2, v3); std::swap(val2, val3); }
 		DrawFlatBottom(*v1, *v2, *v3, val1, val2, val3, color, shader);
 	}
 	else
@@ -169,12 +169,16 @@ void Framebuffer::DrawMesh(const Mesh& mesh, const glm::vec4& color, Shader& sha
 {
 	for (uint32_t i = 0; i < mesh.indices.size()/3; i++)
 	{
+		uint32_t i1 = mesh.indices[(uint64_t)i * 3 + 0];
+		uint32_t i2 = mesh.indices[(uint64_t)i * 3 + 1];
+		uint32_t i3 = mesh.indices[(uint64_t)i * 3 + 2];
+
 		shader.SetStage(Shader::Stage::Vert1);
-		const Vertex& p1 = shader.VertexShader(mesh.vertices[mesh.indices[(uint64_t)i * 3 + 0]]);
+		const Vertex& p1 = shader.VertexShader(mesh.vertices[i1]);
 		shader.SetStage(Shader::Stage::Vert2);
-		const Vertex& p2 = shader.VertexShader(mesh.vertices[mesh.indices[(uint64_t)i * 3 + 1]]);
+		const Vertex& p2 = shader.VertexShader(mesh.vertices[i2]);
 		shader.SetStage(Shader::Stage::Vert3);
-		const Vertex& p3 = shader.VertexShader(mesh.vertices[mesh.indices[(uint64_t)i * 3 + 2]]);
+		const Vertex& p3 = shader.VertexShader(mesh.vertices[i3]);
 
 		glm::vec3 c1 = p2.Position - p1.Position;
 		glm::vec3 c3 = p3.Position - p1.Position;
@@ -187,7 +191,7 @@ void Framebuffer::DrawMesh(const Mesh& mesh, const glm::vec4& color, Shader& sha
 }
 
 void Framebuffer::DrawFlatTop(	const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3,
-								const glm::vec3 val1, const glm::vec3 val2, const glm::vec3 val3, 
+								const glm::vec3 val1, const glm::vec3 val2, const glm::vec3 val3,
 								const glm::vec4& color, Shader& shader)
 {
 	float m1 = (p3.x - p1.x) / (p3.y - p1.y);
@@ -223,7 +227,7 @@ void Framebuffer::DrawFlatTop(	const glm::vec2& p1, const glm::vec2& p2, const g
 }
 
 void Framebuffer::DrawFlatBottom(	const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3,
-									const glm::vec3 val1, const glm::vec3 val2, const glm::vec3 val3, 
+									const glm::vec3 val1, const glm::vec3 val2, const glm::vec3 val3,
 									const glm::vec4& color, Shader& shader)
 {
 	float m1 = (p2.x - p1.x) / (p2.y - p1.y);
