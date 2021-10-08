@@ -38,6 +38,9 @@ void Framebuffer::DrawPoint(const glm::vec2& p, const color_t& color)
 	if (p.x < 0 || p.x > width || p.y < 0 || p.y > height)
 		return;
 
+	if ((int)p.y * width + (int)p.x >= width * height)
+		return;
+
 	((color_t*)buffer)[(int)p.y * width + (int)p.x] = color;
 }
 
@@ -173,20 +176,33 @@ void Framebuffer::DrawMesh(const Mesh& mesh, const glm::vec4& color, Shader& sha
 		uint32_t i2 = mesh.indices[(uint64_t)i * 3 + 1];
 		uint32_t i3 = mesh.indices[(uint64_t)i * 3 + 2];
 
+		// run vretex shader
 		shader.SetStage(Shader::Stage::Vert1);
-		const Vertex& p1 = shader.VertexShader(mesh.vertices[i1]);
+		glm::vec4 p1 = shader.VertexShader(mesh.vertices[i1]);
 		shader.SetStage(Shader::Stage::Vert2);
-		const Vertex& p2 = shader.VertexShader(mesh.vertices[i2]);
+		glm::vec4 p2 = shader.VertexShader(mesh.vertices[i2]);
 		shader.SetStage(Shader::Stage::Vert3);
-		const Vertex& p3 = shader.VertexShader(mesh.vertices[i3]);
+		glm::vec4 p3 = shader.VertexShader(mesh.vertices[i3]);
 
-		glm::vec3 c1 = p2.Position - p1.Position;
-		glm::vec3 c3 = p3.Position - p1.Position;
+		if (p1.w == 0 || p2.w == 0 || p3.w == 0)
+			return;
 
-		glm::vec3 normal = glm::cross(c1, c3);
+		// prospective diveide
+		glm::vec3 v1 = glm::vec3(p1) / p1.w;
+		glm::vec3 v2 = glm::vec3(p2) / p2.w;
+		glm::vec3 v3 = glm::vec3(p3) / p3.w;
 
-		if (glm::dot(normal, {0,0,1}) > 0.0f)
-			DrawTriangle(p1.Position, p2.Position, p3.Position, color, shader, true);
+		if (v1.z > 0 && v2.z > 0 && v3.z > 0)
+		{
+			// back face culling
+			glm::vec3 c1 = v2 - v1;
+			glm::vec3 c3 = v3 - v1;
+
+			glm::vec3 normal = glm::cross(c1, c3);
+
+			if (glm::dot(normal, { 0,0,1 }) > 0.0f)
+				DrawTriangle(v1, v2, v3, color, shader, true); // draw triangle
+		}
 	}
 }
 
